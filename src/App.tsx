@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Camera as CameraIcon, Wifi, WifiOff, UploadCloud, CheckCircle, Image as ImageIcon } from 'lucide-react'
+import { Camera as CameraIcon, Wifi, WifiOff, UploadCloud, CheckCircle } from 'lucide-react'
 import localforage from 'localforage'
 import { v4 as uuidv4 } from 'uuid'
 import { Network } from '@capacitor/network'
