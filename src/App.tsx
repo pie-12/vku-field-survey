@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { Camera as CameraIcon, Wifi, WifiOff, UploadCloud, CheckCircle } from 'lucide-react'
+import { Camera as CameraIcon, Wifi, WifiOff, UploadCloud, CheckCircle, MapPin } from 'lucide-react'
 import localforage from 'localforage'
 import { v4 as uuidv4 } from 'uuid'
 import { Network } from '@capacitor/network'
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera'
+import { Geolocation } from '@capacitor/geolocation'
 
 // Configure localforage
 localforage.config({
@@ -19,6 +20,7 @@ interface SurveyData {
   condition: number;
   notes: string;
   photoUrl?: string;
+  location?: { lat: number; lng: number };
   status: 'PENDING_SYNC' | 'SYNCED';
   timestamp: number;
 }
@@ -34,6 +36,8 @@ function App() {
   const [condition, setCondition] = useState(5);
   const [notes, setNotes] = useState('');
   const [photo, setPhoto] = useState<string | undefined>();
+  const [location, setLocation] = useState<{ lat: number; lng: number } | undefined>();
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
 
   const loadPendingSurveys = async () => {
     const keys = await localforage.keys();
@@ -104,6 +108,22 @@ function App() {
     }
   };
 
+  const getLocation = async () => {
+    try {
+      setIsGettingLocation(true);
+      const coordinates = await Geolocation.getCurrentPosition();
+      setLocation({
+        lat: coordinates.coords.latitude,
+        lng: coordinates.coords.longitude
+      });
+    } catch (e) {
+      console.log('Error getting location', e);
+      alert('Could not get location. Please ensure location services are enabled.');
+    } finally {
+      setIsGettingLocation(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!room) {
@@ -119,6 +139,7 @@ function App() {
       condition,
       notes,
       photoUrl: photo,
+      location,
       status: isOnline ? 'SYNCED' : 'PENDING_SYNC',
       timestamp: Date.now()
     };
@@ -136,6 +157,7 @@ function App() {
     setNotes('');
     setCondition(5);
     setPhoto(undefined);
+    setLocation(undefined);
     
     alert(`Survey saved ${isOnline ? 'and synced' : 'offline (will sync when online)'}!`);
     loadPendingSurveys();
@@ -225,10 +247,21 @@ function App() {
             </div>
           )}
 
+          {location && (
+            <div className="bg-sky-50 border border-sky-100 p-2 rounded-md text-xs text-sky-800 flex items-center gap-2">
+              <MapPin size={14} />
+              {location.lat.toFixed(5)}, {location.lng.toFixed(5)}
+            </div>
+          )}
+
           <div className="pt-2 flex gap-3">
             <button type="button" onClick={takePhoto} className="flex-1 bg-slate-100 text-slate-700 border border-slate-300 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-slate-200">
               <CameraIcon size={18} />
               Photo
+            </button>
+            <button type="button" onClick={getLocation} disabled={isGettingLocation} className="flex-1 bg-slate-100 text-slate-700 border border-slate-300 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-slate-200">
+              <MapPin size={18} />
+              {isGettingLocation ? 'Wait...' : 'Location'}
             </button>
             <button type="submit" className="flex-1 bg-sky-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-sky-700 shadow-sm">
               <CheckCircle size={18} />

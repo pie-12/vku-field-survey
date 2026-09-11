@@ -12,6 +12,7 @@
   "dependencies": {
     "@capacitor/camera": "^8.2.4",
     "@capacitor/core": "^8.5.1",
+    "@capacitor/geolocation": "^8.2.2",
     "@capacitor/network": "^8.0.1",
     "@ionic/pwa-elements": "^3.4.0",
     "localforage": "^1.10.0",
