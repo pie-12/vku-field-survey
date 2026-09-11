@@ -111,6 +111,18 @@ function App() {
   const getLocation = async () => {
     try {
       setIsGettingLocation(true);
+      
+      // Request permissions explicitly for Android
+      const permissions = await Geolocation.checkPermissions();
+      if (permissions.location !== 'granted') {
+        const request = await Geolocation.requestPermissions();
+        if (request.location !== 'granted') {
+           alert('Permission denied. Cannot access location.');
+           setIsGettingLocation(false);
+           return;
+        }
+      }
+
       const coordinates = await Geolocation.getCurrentPosition();
       setLocation({
         lat: coordinates.coords.latitude,
